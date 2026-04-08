@@ -1,66 +1,217 @@
-# Rail Network Resilience Model
+# 🚆 Rail Freight Resilience Modeling Framework
 
-## Overview
-This project develops a comprehensive framework for assessing the resilience of a national rail freight network under targeted and hazard-driven disruptions. The model integrates freight demand disaggregation, network construction, flow assignment, system performance evaluation, and post-disruption resilience analysis.
+## 📌 Overview
 
-The workflow is organized into five stages:
+This repository implements a **complete end-to-end framework** for modeling, assigning, and analyzing **rail freight flows in the U.S.** using FAF data and network-based methods.
 
----
-
-## Framework Stages
-
-### Stage 1 — Input Data
-- Railroad network (main lines and major industrial leads)
-- FAF freight demand (OD flows)
-- Disruption scenarios:
-  - Targeted node removal
-  - Targeted link removal
-  - Flood-induced disruption
-
-### Stage 2 — Network, Demand, and Preprocessing
-- Spatial disaggregation of FAF flows (zone → county level)
-- Railroad network topology construction
-- Hierarchical county-to-rail access assignment
-
-### Stage 3 — Baseline Flow Assignment
-- Shortest travel-time path assignment
-- Multiple OD flows may share links
-- Identification of infeasible OD pairs
-
-### Stage 4 — Baseline System Performance
-- OD-level performance metrics:
-  - Ton-hours
-  - Value-hours
-- System feasibility
-- Network functionality and resilience reference state
-
-### Stage 5 — Post-Disruption Performance & Resilience
-- Simulation of disruption types
-- Classification of OD flows:
-  - Unaffected
-  - Delayed
-  - Infeasible
-- Network-level functionality metrics
-- Resilience curve generation
+It transforms raw freight data into a **fully assigned rail network** and evaluates **system performance and resilience under disruptions**.
 
 ---
 
-## Key Outputs
-- Baseline and disrupted system performance metrics
-- OD-level delay and feasibility classification
-- Network-level functionality measures
-- Resilience curves under different disruption scenarios
-- Visualization and presentation outputs (e.g., GIF animations)
+## 🧠 What This Project Does
+
+This framework integrates:
+
+- 📦 FAF freight demand (county-level)
+- 🛤️ U.S. rail network (FRA-based)
+- 📍 Spatial allocation & node mapping
+- 🔗 Graph-based flow assignment
+- ⚠️ Disruption and resilience analysis
 
 ---
 
-## Purpose
-This framework supports infrastructure resilience assessment, disruption impact analysis, and freight system risk evaluation for large-scale rail networks.
+## 🔄 Full Pipeline
+
+```
+FAF Data
+↓
+Stage 1 — County-Level Freight Flows
+↓
+Stage 2 — Rail Network Construction
+↓
+Stage 3 — Flow Assignment (OD → Network)
+↓
+Stage 4 — Baseline Performance Analysis
+↓
+Stage 5 — Export Network with Flows
+↓
+Stage 6 — Targeted Disruption Analysis
+↓
+Stage 7 — Flood Risk Disruption Analysis
+```
 
 ---
 
-## Author
-For questions, reproducibility support, or collaboration:
+## 📂 Project Structure
 
-Benyamin Ghoreishi
-Email: ghoreisb@oregonstate.edu
+```
+stage_1_input_data/
+stage_2_network_preprocessing/
+stage_3_flow_assignment/
+stage_4_baseline_performance/
+stage_5_export_nodes_links_with_flows/
+stage_6_disruption_analysis_value2024/
+stage_7_disruption_analysis_floodrisk/
+```
+
+
+Each stage is modular and can be run independently.
+
+---
+
+## 🧩 Stage Summary
+
+### 📊 Stage 1 — FAF → County Flows
+- Converts FAF zone-level data into **county-to-county flows**
+- Preserves:
+  - Tons, value, commodities
+- Outputs:
+  - CSV + GeoPackage datasets 
+
+👉 See Stage 1 README for details
+
+---
+
+### 🛤️ Stage 2 — Rail Network Construction
+- Builds **topologically consistent rail graph**
+- Uses:
+  - FRA nodes (`FRANODEID`)
+  - Rail geometries
+- Outputs:
+  - Nodes + edges (GeoPackage)  
+
+👉 See Stage 2 README for details
+
+---
+
+### 🔗 Stage 3 — Flow Assignment
+- Maps county demand → rail nodes
+- Assigns flows using **shortest-path routing**
+- Tracks:
+  - Link usage (`path_link_fids`)
+- Outputs:
+  - OD paths + link flows  
+
+👉 See Stage 3 README for details
+
+---
+
+### 📈 Stage 4 — Baseline Performance
+- Evaluates network under normal conditions
+- Computes:
+  - Travel time, ton-hours, feasibility  
+- Outputs:
+  - Summary statistics + plots  
+
+👉 See Stage 4 README for details
+
+---
+
+### 🌐 Stage 5 — Export Nodes & Links with Flows
+- Aggregates flows to:
+  - **Links (through-flows)**
+  - **Nodes (origin/destination/throughput)**
+- Outputs:
+  - CSV + GeoPackage  
+
+👉 See Stage 5 README for details
+
+---
+
+### ⚠️ Stage 6 — Disruption Analysis
+- Simulates disruptions:
+  - Links and nodes (top % by importance)
+- Recomputes:
+  - Paths, feasibility, flow redistribution
+- Outputs:
+  - Resilience metrics + scenarios  
+
+👉 See Stage 6 README for details
+
+---
+
+### 🌊 Stage 7 — Flood Risk Analysis
+- Integrates **flood-risk scores with rail network**
+- Runs two scenarios:
+  - Max risk (localized extremes)
+  - Sum risk (cumulative exposure)
+- Outputs:
+  - Resilience curves + comparison plots  
+
+👉 See Stage 7 README for details
+
+---
+
+## 📊 Key Concepts
+
+- **Mass Conservation**  
+  Freight totals remain consistent across transformations  
+
+- **Graph-Based Routing**  
+  Uses NetworkX + Dijkstra for scalable assignment  
+
+- **Traceability**  
+  County → Node → Link mapping is preserved  
+
+- **Resilience Metrics (OD Level - (Value×Travel Time))**
+\[
+F = \frac{1}{K} \sum f_k
+\]
+
+- **Flow Update under Disruption (Link Level)**
+\[
+\text{Post-flow} = \text{Baseline} - \text{Original} + \text{Rerouted}
+\]
+
+---
+
+## ⚙️ Requirements
+
+- Python 3.9+
+- Key libraries:
+  - `pandas`
+  - `geopandas`
+  - `networkx`
+  - `numpy`
+  - `matplotlib`
+  - `seaborn`
+
+---
+
+## 🚀 How to Run
+
+Run stages sequentially:
+
+1. Start from **Stage 1**
+2. Proceed step-by-step through Stage 7  
+3. Each stage produces inputs for the next  
+
+💡 Tip: Each stage has its own README for detailed instructions.
+
+---
+
+## 📌 Applications
+
+- 🚆 Freight network modeling  
+- 🛡️ Infrastructure resilience analysis  
+- 🌊 Climate risk assessment (flood impacts)  
+- 📍 Corridor and bottleneck identification  
+
+---
+
+## 🧾 Notes
+
+- All paths use **relative structure (`base_dir`)**
+- Designed for **large-scale datasets (millions of OD pairs)**
+- Modular design supports:
+  - Scenario testing  
+  - Model extensions  
+  - Policy analysis  
+
+---
+
+## ✨ Final Thought
+
+This framework provides a **fully integrated pipeline** from raw freight data to **network-level resilience insights**, enabling both **academic research** and **practical infrastructure analysis**.
+
+---
