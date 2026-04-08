@@ -215,3 +215,23 @@ Run stages sequentially:
 This framework provides a **fully integrated pipeline** from raw freight data to **network-level resilience insights**, enabling both **academic research** and **practical infrastructure analysis**.
 
 ---
+
+## 📌 Citation and Acknowledgements
+
+If you use or adapt this code, please cite the associated manuscript:
+
+> [Manuscript Title Placeholder]  
+> [Journal / Status Placeholder]
+
+**Acknowledgements (project-level):**  
+This work was supported through the Federal Railroad Administration (FRA) research context described in the manuscript and associated rail resilience initiatives. Please refer to the manuscript acknowledgements for official wording.
+
+---
+
+
+
+## 📩 Contact
+For questions, reproducibility support, or collaboration:
+
+**Benyamin Ghoreishi**  
+Email: `ghoreisb@oregonstate.edu`
