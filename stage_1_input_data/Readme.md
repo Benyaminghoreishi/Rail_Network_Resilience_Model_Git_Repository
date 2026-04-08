@@ -1,174 +1,153 @@
-# Stage 1 – FAF Rail Freight Disaggregation to County Level
+# Stage 1 - FAF Rail Freight → County-Level Flow Processing
 
 ## Overview
 
-This module performs spatial disaggregation of FAF (Freight Analysis Framework) rail freight flows from FAF zone-level origin–destination (OD) pairs to county-level OD flows. The process preserves total freight volumes while increasing spatial resolution for network-level modeling.
+This module processes **FAF5.7.1 rail freight data** and converts it from **FAF zone-level OD flows** into **county-to-county freight flows** for the U.S.
 
-The script prepares freight demand inputs for subsequent rail network assignment and resilience analysis.
+It preserves:
 
----
+* Total freight tons and value
+* Commodity structure (SCTG)
+* OD relationships
 
-## Script
+Outputs are designed for:
 
-- `faf_county_flow_disaggregation.py`
-
----
-
-## Purpose
-
-FAF freight data is typically provided at aggregated FAF zone levels. However, network modeling requires demand at finer spatial resolution (county-to-county).  
-
-This script converts:
-
-FAF Zone → FAF Zone flows  
-
-into:
-
-County → County flows  
-
-while preserving:
-
-- Total tonnage
-- Commodity structure (SCTG classification)
-- Mode filtering (Rail mode only)
+* Network assignment
+* GIS visualization
+* Freight corridor analysis
+* Resilience modeling
 
 ---
 
-## Required Inputs
+## Workflow
 
-1. **FAF Freight Flow Dataset**
-   - Origin FAF zone
-   - Destination FAF zone
-   - Mode (filtered to Rail – Mode 2)
-   - Commodity (SCTG)
-   - Freight tonnage and/or value
+```
+Stage 1 — FAF Raw Data
+    ↓
+Stage 2 — Rail Filtering (Mode 2) and Commodity Aggregation (SCTG → 5 groups)
+    ↓
+Stage 3 — Visualization (2024 / 2050 / Comparison)
+    ↓
+Stage 4 — FAF Zone → County Disaggregation (For 5 different commodity types)
+    ↓
+Stage 5 — County Flow Vectorization and Spatial Output (GeoPackage)
+    ↓
+Stage 6 — Validation & Sanity Checks
+```
 
-2. **Geographic Boundary Files**
-   - FAF zone shapefile
-   - County shapefile
-   - Spatial crosswalk between FAF zones and counties
-
-3. **Optional Supporting Data**
-   - County population or economic weights (if weighted disaggregation is applied)
-
----
-
-## Processing Steps
-
-### Step 1 – Load Data
-- Import FAF freight flow dataset
-- Import spatial boundary files (FAF zones and counties)
-- Clean column names and standardize identifiers
 
 ---
 
-### Step 2 – Filter Rail Mode
-- Select Mode 2 (Rail shipments only)
-- Remove non-rail shipments
-- Verify total tonnage after filtering
+## Step Descriptions
+
+### 1. FAF Raw Data
+- Reads **FAF5.7.1 dataset**
+- Extracts required fields:
+  - FAF origin and destination zones  
+  - Commodity (SCTG2)  
+  - Mode and trade type  
+  - Tons and value (2024 & 2050)
 
 ---
 
-### Step 3 – Prepare FAF-to-County Mapping
-- Identify counties within each FAF zone
-- Create a crosswalk table linking:
-  - FAF zone ID
-  - County FIPS codes
-- Compute allocation weights for each county within a FAF zone
+### 2. Rail Filtering & Commodity Aggregation
+- Filters data to **rail mode (Mode = 2)**
+- Aggregates **SCTG2 commodities into 5 groups**:
+  - `sctg0109` — Agricultural products  
+  - `sctg1014` — Mining & construction materials  
+  - `sctg1519` — Energy products  
+  - `sctg2033` — Chemicals, wood, and metals  
+  - `sctg3499` — Manufactured goods and mixed freight  
 
-Weights may be based on:
-- Equal distribution
-- Population
-- Economic activity
-- Freight proxy indicators
-
----
-
-### Step 4 – Spatial Disaggregation
-
-For each FAF OD pair:
-
-1. Identify origin FAF zone counties
-2. Identify destination FAF zone counties
-3. Distribute total FAF flow across all county-to-county combinations
-4. Apply proportional weights
-5. Ensure total flow is preserved
-
-Mathematically:
-
-If:
-F_ij = FAF flow from zone i to zone j
-
-Then for counties c ∈ i and d ∈ j:
-
-f_cd = F_ij × w_c × w_d
-
-Where:
-- w_c = origin county weight
-- w_d = destination county weight
+- Aggregates flows by:
+  - Origin–destination pairs  
+  - Trade type  
+  - Commodity group  
 
 ---
 
-### Step 5 – Preserve Flow Consistency
-
-- Validate that:
-  - Sum of county-level flows = original FAF flow
-- Check for rounding errors
-- Correct minor discrepancies if needed
+### 3. Visualization (2024 / 2050 / Comparison)
+- Generates comparative plots for:
+  - SCTG-level flows  
+  - Aggregated commodity groups  
+- Displays:
+  - Freight volume (million tons)  
+  - Freight value (million USD)  
+- Supports both **single-year** and **side-by-side comparison (2024 vs 2050)**
 
 ---
 
-### Step 6 – Clean and Format Output
+### 4. FAF Zone → County Disaggregation
+- Converts FAF zone-level OD flows into **county-level OD flows**
+- Uses:
+  - Origin allocation factors  
+  - Destination allocation factors  
 
-- Generate structured county-to-county OD matrix
-- Include:
-  - Origin county FIPS
-  - Destination county FIPS
-  - Commodity code
-  - Tonnage
-  - Optional freight value
-- Export as CSV or data frame for Stage 2
+- Method:
+  - Expands each FAF OD pair into multiple county pairs  
+  - Applies proportional allocation:
+
+\[
+\text{County Flow} = \text{FAF Flow} \times f_{orig} \times f_{dest}
+\]
+
+- Ensures:
+  - Total tons and values are preserved after disaggregation  
+
+---
+
+### 5. County Flow Vectorization & Spatial Output
+- Converts OD tables into **county-level flow vectors**:
+  - Outbound flows (to destination counties)  
+  - Inbound flows (from origin counties)  
+
+- Merges results with U.S. county shapefile
+- Outputs:
+  - **GeoPackage (.gpkg)** with:
+    - Geometry  
+    - Flow vectors  
+    - Commodity-specific attributes  
+
+---
+
+### 6. Validation & Sanity Checks
+- Performs multiple consistency checks:
+  - FAF totals vs county-level totals  
+  - OD pair validation (CSV vs GeoPackage)  
+  - Global inbound vs outbound balance  
+
+- Additional checks include:
+  - Non-zero flow counts  
+  - Maximum flow inspection  
+  - Difference tracking for allocation accuracy  
 
 ---
 
 ## Outputs
 
-- County-to-county freight flow dataset
-- Rail-only demand matrix
-- Spatially consistent OD demand file for network assignment
+### Tabular Outputs
+- `county_level_<sctg>.csv` (per commodity group)  
+- `county_level_all_categories.csv`  
+- `county_level_summary_2024_2050.csv`  
+
+### Spatial Output
+- `county_level_with_faf_flows.gpkg`  
+  - County geometries with inbound/outbound flow attributes  
+
+### Figures
+- 6 visualization plots (PNG format)
 
 ---
 
-## Quality Checks Performed
+## Notes
 
-- Total tonnage preservation
-- No negative flows
-- No missing counties
-- Mode verification (Rail only)
+- Units:
+  - **Tons** → thousand tons (FAF standard)  
+  - **Value** → million 2017 USD  
 
----
-
-## Role in Overall Framework
-
-This stage establishes the demand foundation for:
-
-- Network topology construction
-- OD flow assignment
-- Baseline performance evaluation
-- Disruption and resilience modeling
-
-Without accurate spatial disaggregation, downstream network analysis would misrepresent flow distribution and system vulnerability.
+- The pipeline:
+  - Preserves **mass balance across transformations**
+  - Uses **modular steps for reproducibility**
+  - Supports **scenario comparison (2024 vs 2050)**
 
 ---
-
-## Computational Considerations
-
-- Computational complexity increases with number of counties per FAF zone
-- Memory management may be required for large OD matrices
-- Efficient merging and grouping operations are critical
-
----
-
-## Summary
-
-Stage 1 converts aggregated FAF rail freight flows into high-resolution county-level OD demand while preserving total freight volume and commodity structure. This step ensures spatial consistency between freight demand and the constructed rail network.
