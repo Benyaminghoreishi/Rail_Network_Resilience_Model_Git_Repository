@@ -1,7 +1,8 @@
 # %%
 #! =======================================================================
 #! 1
-#! FAF5.7.1: Extracting Key Fields and 2024 Tons 
+#! FAF5.7.1: Extracting Key Fields and 2024 and 2050 Tons 
+#! Output: FAF Level → 5 fields + 2024/2050 tons/values → 365,031 rows (mode 2 only)
 #! =======================================================================
 
 import pandas as pd
@@ -57,7 +58,9 @@ print(f"Total Value (2050, Mode 2): ${total_value_2050:,.0f} million 2017 USD")
 #%%
 #! =======================================================================
 #! 2
-#! FAF5.7.1: Aggregating SCTG categories into 5 groups
+#! FAF5.7.1: Aggregating SCTG categories into 5 groups 
+#! sctg_all_categories_concat.csv (45651 rows) + sctg_category_totals.csv (5 rows)
+#! sctg0109.csv, sctg1014.csv, sctg1519.csv, sctg2033.csv, sctg3499.csv
 #! =======================================================================
 
 import pandas as pd
@@ -434,7 +437,7 @@ print(f"\nAll 6 figures saved to: {output_dir}")
 #!   OD flows using FAF experimental disaggregation factors for multiple SCTG groups.
 #!   Preserves total tons and values for both 2024 and 2050 forecast years.
 #! Outputs:
-#!   - County-level OD CSV per SCTG group (2024 & 2050)
+#!   - County-level OD CSV per SCTG group (2024 & 2050) 
 #!   - Combined county-level OD CSV (all categories)
 #!   - Summary CSV of total tons and values by category and year
 #! ============================================================================================
@@ -655,12 +658,25 @@ import pandas as pd
 import geopandas as gpd
 import os
 
+# ------------------------------------------------------------- 
+# Base paths (same pattern you used earlier) 
+# -------------------------------------------------------------
+base_dir = os.path.abspath(os.path.join("..", ".."))
+
 # --------------------------------------------------
 # File paths
 # --------------------------------------------------
-csv_path = r"C:\Users\ghoreisb\Box\Oregon State University\0000- Research_OSU\1_Rail_Project\13_Resiliency\FAF\Processed_Data\County_Level\county_level_all_categories.csv"
+csv_path = os.path.join(
+    base_dir,
+    "13_Resiliency", "FAF", "Processed_Data", "County_Level",
+    "county_level_all_categories.csv"
+)
 
-shp_path = r"C:\Users\ghoreisb\Box\Oregon State University\0000- Research_OSU\1_Rail_Project\Shapefiles\tl_2024_us_county\tl_2024_us_county.shp"
+shp_path = os.path.join(
+    base_dir,
+    "Shapefiles", "tl_2024_us_county",
+    "tl_2024_us_county.shp"
+)
 
 output_path = os.path.join(
     os.path.dirname(csv_path),
@@ -835,12 +851,25 @@ print(f"📊 Total columns: {len(gdf.columns)}")
 import pandas as pd
 import geopandas as gpd
 
+# ------------------------------------------------------------- 
+# Base paths (same pattern you used earlier) 
+# -------------------------------------------------------------
+base_dir = os.path.abspath(os.path.join("..", ".."))
+
 # --------------------------------------------------
 # Paths
 # --------------------------------------------------
-csv_path = r"C:\Users\ghoreisb\Box\Oregon State University\0000- Research_OSU\1_Rail_Project\13_Resiliency\FAF\Processed_Data\County_Level\county_level_all_categories.csv"
+csv_path = os.path.join(
+    base_dir,
+    "13_Resiliency", "FAF", "Processed_Data", "County_Level",
+    "county_level_all_categories.csv"
+)
 
-gpkg_path = r"C:\Users\ghoreisb\Box\Oregon State University\0000- Research_OSU\1_Rail_Project\13_Resiliency\FAF\Processed_Data\County_Level\county_level_with_faf_flows.gpkg"
+gpkg_path = os.path.join(
+    base_dir,
+    "13_Resiliency", "FAF", "Processed_Data", "County_Level",
+    "county_level_with_faf_flows.gpkg"
+)
 
 # --------------------------------------------------
 # Check parameters
@@ -915,10 +944,19 @@ print(f"\nTotal non-zero tons_2024 rows in CSV: {len(nonzero_rows):,}")
 
 import geopandas as gpd
 
+# ------------------------------------------------------------- 
+# Base paths (same pattern you used earlier) 
+# -------------------------------------------------------------
+base_dir = os.path.abspath(os.path.join("..", ".."))
+
 # --------------------------------------------------
 # Path
 # --------------------------------------------------
-gpkg_path = r"C:\Users\ghoreisb\Box\Oregon State University\0000- Research_OSU\1_Rail_Project\13_Resiliency\FAF\Processed_Data\County_Level\county_level_with_faf_flows.gpkg"
+gpkg_path = os.path.join(
+    base_dir,
+    "13_Resiliency", "FAF", "Processed_Data", "County_Level",
+    "county_level_with_faf_flows.gpkg"
+)
 
 # --------------------------------------------------
 # Read GeoPackage
