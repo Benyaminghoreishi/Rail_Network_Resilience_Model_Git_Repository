@@ -100,7 +100,7 @@ print(f"\n✅ Aggregated county-level OD saved to:")
 print(out_csv)
 print(f"Rows: {len(od_county):,}")
 
- # %%
+# %%
 #!========================================================================
 #! 2
 #! Create OD Pairs from Rail Graph Nodes using County FAF Flows (FRANODEID Version)
@@ -1445,3 +1445,130 @@ print(f"  Total frames: {total_frames}")
 print(f"\nReady for presentation! 🎬")
 print("=" * 80)
 
+#%%
+
+#! ============================================================
+#! 5
+#! FINAL NODE USAGE SUMMARY (run at the end)
+#! ============================================================
+
+import pandas as pd
+
+# --------------------------------------------------
+# Load OD pairs (your final CSV)
+# --------------------------------------------------
+base_dir = os.path.abspath(os.path.join("..", ".."))
+
+output_csv_path = os.path.join(
+    base_dir,
+    "13_Resiliency",
+    "FAF",
+    "Processed_Data",
+    "County_Level",
+    "rail_od_pairs_from_nodes.csv"
+)
+
+df = pd.read_csv(output_csv_path)  # or path to rail_od_pairs_from_nodes.csv
+
+print("="*70)
+print("NODE USAGE SUMMARY")
+print("="*70)
+
+# ============================================================
+# 1. TOTAL USAGE (counts including repetitions)
+# ============================================================
+origin_counts = df['origin_node_type'].value_counts()
+dest_counts = df['destination_node_type'].value_counts()
+
+print("\n--- TOTAL NODE USAGE (OD-based) ---")
+print("\nOrigin node usage:")
+print(origin_counts)
+
+print("\nDestination node usage:")
+print(dest_counts)
+
+# ============================================================
+# 2. UNIQUE NODES USED (important)
+# ============================================================
+origin_unique = (
+    df[['origin_franodeid', 'origin_node_type']]
+    .drop_duplicates()
+    .groupby('origin_node_type')
+    .size()
+)
+
+dest_unique = (
+    df[['destination_franodeid', 'destination_node_type']]
+    .drop_duplicates()
+    .groupby('destination_node_type')
+    .size()
+)
+
+print("\n--- UNIQUE NODES USED ---")
+print("\nOrigin unique nodes:")
+print(origin_unique)
+
+print("\nDestination unique nodes:")
+print(dest_unique)
+
+# ============================================================
+# 3. COMBINED UNIQUE NODES (final answer for paper)
+# ============================================================
+all_nodes = pd.concat([
+    df[['origin_franodeid','origin_node_type']].rename(
+        columns={'origin_franodeid':'franodeid','origin_node_type':'node_type'}
+    ),
+    df[['destination_franodeid','destination_node_type']].rename(
+        columns={'destination_franodeid':'franodeid','destination_node_type':'node_type'}
+    )
+]).drop_duplicates()
+
+combined_unique = all_nodes.groupby('node_type').size()
+
+print("\n--- TOTAL UNIQUE NODES USED (ORIGIN + DESTINATION) ---")
+print(combined_unique)
+
+# ============================================================
+# 4. OPTIONAL: SAVE TABLE (for paper)
+# ============================================================
+summary_df = pd.DataFrame({
+    'origin_usage': origin_counts,
+    'destination_usage': dest_counts,
+    'origin_unique': origin_unique,
+    'destination_unique': dest_unique,
+    'total_unique': combined_unique
+}).fillna(0).astype(int)
+
+out_summary = output_csv_path.replace(".csv", "_node_usage_summary.csv")
+summary_df.to_csv(out_summary)
+
+print(f"\n✓ Summary saved to: {out_summary}")
+
+# ============================================================
+# 5. CHECK UNUSED NODES (optional)
+# ============================================================
+# if you want to compare with all nodes:
+# gdf_nodes must already be loaded
+
+try:
+    all_graph_nodes = set(gdf_nodes['FRANODEID'])
+    used_nodes = set(all_nodes['franodeid'])
+
+    unused_nodes = all_graph_nodes - used_nodes
+
+    print("\n--- UNUSED NODES ---")
+    print(f"Total unused nodes: {len(unused_nodes)}")
+
+    unused_types = gdf_nodes[
+        gdf_nodes['FRANODEID'].isin(unused_nodes)
+    ]['NODE_TYPE'].value_counts()
+
+    print("\nUnused node types:")
+    print(unused_types)
+
+except:
+    print("\n(No graph node comparison executed)")
+
+print("\nDONE.")
+
+# %%
