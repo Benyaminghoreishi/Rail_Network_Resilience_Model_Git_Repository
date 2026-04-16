@@ -1080,71 +1080,223 @@ print(f"  FloodRisk_Sum : {len(df_sum)} steps\n")
 
 sns.set_style("whitegrid"); plt.rcParams["figure.dpi"] = 100
 C_MAX  = "#E84855"; C_SUM = "#3A86FF"
-XLABEL = "Cumulative Flood-Risk Step"
+XLABEL = "Simultaneous Disruption of Top-Risk Locations"
 
 def combined_line(y, ylabel, title, fname, ylim=None):
     fig, ax = plt.subplots(figsize=(13, 7))
-    ax.plot(df_max["step"], df_max[y], marker="o", linewidth=2.5,
+
+    if fname == "combined_value_infeasible.png":
+        start_val = 0.0
+    else:
+        start_val = 1.0
+
+    x_max = [0] + df_max["step"].tolist()
+    y_max = [start_val] + df_max[y].tolist()
+
+    x_sum = [0] + df_sum["step"].tolist()
+    y_sum = [start_val] + df_sum[y].tolist()
+
+    # --- Plot lines --- put them on the left bottom of the boarder to avoid overlapping with the legend
+    # --- Plot ---
+    ax.plot(x_max, y_max, marker="o", linewidth=2.5,
             markersize=6, color=C_MAX,
             label="FloodRisk_Max  (ranked by Max_Risk_Score)")
-    ax.plot(df_sum["step"], df_sum[y], marker="s", linewidth=2.5,
+
+    ax.plot(x_sum, y_sum, marker="s", linewidth=2.5,
             markersize=6, color=C_SUM,
-            label="FloodRisk_Sum  (ranked by Sum_Risk_Score)")
-    ax.set_xlabel(XLABEL, fontsize=13, fontweight="bold")
-    ax.set_ylabel(ylabel, fontsize=13, fontweight="bold")
-    ax.set_title(title,   fontsize=14, fontweight="bold", pad=15)
-    ax.legend(fontsize=11); ax.grid(True, alpha=0.3)
-    if ylim: ax.set_ylim(ylim)
+            label="FloodRisk_Cumulative  (ranked by Cumulative_Risk_Score)")
+
+    # --- Labels ---
+    ax.set_xlabel(XLABEL, fontsize=16, fontweight="bold")
+    ax.set_ylabel(ylabel, fontsize=16, fontweight="bold")
+    ax.set_title(title, fontsize=18, fontweight="bold", pad=15)
+    
+    # x ticks font size 12
+    ax.tick_params(axis='both', labelsize=14)
+
+    if fname == "combined_value_infeasible.png":
+        ax.legend(fontsize=14, loc="upper left")
+    else:
+        ax.legend(fontsize=14, loc="lower left")
+        
+    ax.grid(True, alpha=0.3)
+
+    # --- ZOOM ---
+    if ylim:
+        ax.set_ylim(ylim)
+
+    # --- FORMAT AS PERCENT ---
+    import matplotlib.ticker as mticker
+    if fname != "combined_value_infeasible.png":
+        ax.yaxis.set_major_formatter(mticker.PercentFormatter(1.0))
+
+    # =========================
+    # 🔷 DELTA EVERY 10 STEPS
+        # =========================
+    if fname != "combined_value_infeasible.png":
+
+        steps_to_mark = [50]
+
+        for step in steps_to_mark:
+            if step in df_max["step"].values:
+
+                y_max_val = df_max.loc[df_max["step"] == step, y].values[0]
+                y_sum_val = df_sum.loc[df_sum["step"] == step, y].values[0]
+                delta_val = y_sum_val - y_max_val
+
+                # ax.annotate(
+                #     "",
+                #     xy=(step, y_sum_val),
+                #     xytext=(step, y_max_val),
+                #     arrowprops=dict(
+                #         arrowstyle="<->",
+                #         color="blue",
+                #         lw=2
+                #     )
+                # )
+
+                # ax.text(
+                #     step - 3.8,
+                #     (y_sum_val + y_max_val) / 2,
+                #     f"{delta_val*100:.1f} pp",
+                #     fontsize=16,
+                #     color="blue",
+                #     va="center"
+                # )
+
+    # =========================
+    # 🔷 LABEL VALUES AT STEPS
+    # =========================
+    if fname != "combined_value_infeasible.png":
+
+        steps_to_label = [10, 20, 30, 40, 50]
+
+        for step in steps_to_label:
+            if step in df_max["step"].values:
+
+                y_max_val = df_max.loc[df_max["step"] == step, y].values[0]
+                y_sum_val = df_sum.loc[df_sum["step"] == step, y].values[0]
+
+                ax.scatter(step, y_max_val, color=C_MAX, s=50, zorder=5)
+                ax.scatter(step, y_sum_val, color=C_SUM, s=50, zorder=5)
+
+                ax.text(step + 0.2, y_max_val + 0.001,
+                        f"{y_max_val*100:.1f}%",
+                        color=C_MAX, fontsize=12, fontweight="bold",
+                        va="bottom")
+
+                ax.text(step + 0.2, y_sum_val + 0.002,
+                        f"{y_sum_val*100:.1f}%",
+                        color=C_SUM, fontsize=12, fontweight="bold",
+                        va="top")
+            
     plt.tight_layout()
     fig.savefig(os.path.join(FIGS_DIR, fname), dpi=300, bbox_inches="tight")
-    plt.close(); print(f"  {fname}")
+    plt.close()
+
+    print(f"  {fname}")
 
 combined_line("F_value_2024",
               "Network Functionality  F(G_d)",
               "Network Functionality vs Cumulative Flood-Risk Steps\n"
-              "FloodRisk_Max vs FloodRisk_Sum",
-              "combined_F_value2024.png", (0, 1.05))
+              "FloodRisk_Max vs FloodRisk_Cumulative",
+              "combined_F_value2024.png", (0.94, 1.005))
 
 combined_line("reachability",
               "Reachability  |K_feasible| / |K|",
               "Network Reachability vs Cumulative Flood-Risk Steps\n"
-              "FloodRisk_Max vs FloodRisk_Sum",
+              "FloodRisk_Max vs FloodRisk_Cumulative",
               "combined_reachability.png", (0, 1.05))
 
 combined_line("val_infeasible_day",
               "Daily Value Infeasible  ($M/day)",
               "Daily Value Lost vs Cumulative Flood-Risk Steps\n"
-              "FloodRisk_Max vs FloodRisk_Sum",
+              "FloodRisk_Max vs FloodRisk_Cumulative",
               "combined_value_infeasible.png")
 
 combined_line("n_cumul_links",
               "Cumulative Disrupted Links",
               "Links Removed Cumulatively vs Step\n"
-              "FloodRisk_Max vs FloodRisk_Sum",
+              "FloodRisk_Max vs FloodRisk_Cumulative",
               "combined_cumul_links.png")
 
 fig, axes = plt.subplots(1, 2, figsize=(18, 7), sharey=True)
+
+COL_UNA = "#1b9e77"
+COL_DEL = "#999999"
+COL_INF = "#d73027"
+
+EXPLAIN_STEP = 35   # 👈 you can change this
+
 for ax, (df_r, lbl, color) in zip(axes, [
         (df_max, "FloodRisk_Max", C_MAX),
-        (df_sum, "FloodRisk_Sum", C_SUM)]):
+        (df_sum, "FloodRisk_Cumulative", C_SUM)]):
+
     x = df_r["step"].values
+
+    # --- transparent stacked areas ---
     ax.fill_between(x, 0, df_r["pct_unaffected"],
-                    label="Unaffected", color="#90EE90", alpha=0.85)
-    ax.fill_between(x, df_r["pct_unaffected"],
+                    color=COL_UNA, alpha=0.5, label="Unaffected")
+
+    ax.fill_between(x,
+                    df_r["pct_unaffected"],
                     df_r["pct_unaffected"] + df_r["pct_delayed"],
-                    label="Delayed",    color="#FFD700", alpha=0.85)
-    ax.fill_between(x, df_r["pct_unaffected"] + df_r["pct_delayed"], 100,
-                    label="Infeasible", color="#FF6B6B", alpha=0.85)
-    ax.set_title(lbl,     fontsize=13, fontweight="bold", color=color)
-    ax.set_xlabel(XLABEL, fontsize=12)
-    ax.set_ylabel("% of OD Pairs", fontsize=12)
-    ax.legend(fontsize=10); ax.grid(True, alpha=0.3); ax.set_ylim([0, 105])
-plt.suptitle("OD Pair Classification vs Cumulative Flood-Risk Steps",
-             fontsize=15, fontweight="bold")
+                    color=COL_DEL, alpha=0.5, label="Delayed")
+
+    ax.fill_between(x,
+                    df_r["pct_unaffected"] + df_r["pct_delayed"],
+                    100,
+                    color=COL_INF, alpha=0.5, label="Infeasible")
+
+    # --- labels (BIGGER) ---
+    ax.set_title(lbl, fontsize=18, fontweight="bold", color=color)
+    ax.set_xlabel(XLABEL, fontsize=16, fontweight="bold")
+    ax.set_ylabel("% of OD Pairs", fontsize=16, fontweight="bold")
+
+    ax.tick_params(axis='both', labelsize=12)
+
+    ax.set_ylim([0, 100])
+    ax.grid(True, alpha=0.3)
+
+    # =========================
+    # 🔷 VERTICAL EXPLANATION LINE
+    # =========================
+    if EXPLAIN_STEP in df_r["step"].values:
+
+        row = df_r[df_r["step"] == EXPLAIN_STEP].iloc[0]
+
+        y1 = row["pct_unaffected"]
+        y2 = row["pct_unaffected"] + row["pct_delayed"]
+
+        # vertical line
+        ax.axvline(EXPLAIN_STEP, color="gray", linestyle="--", lw=1)
+
+        # labels (clean stacked)
+        ax.text(EXPLAIN_STEP + 1, y1 / 2,
+                f"{y1:.01f}%", color=COL_UNA, fontsize=14, fontweight="bold")
+
+        ax.text(EXPLAIN_STEP + 1, y1 + (row["pct_delayed"] / 2),
+                f"{row['pct_delayed']:.01f}%", color=COL_DEL, fontsize=14, fontweight="bold")
+
+        ax.text(EXPLAIN_STEP + 1, y2 + (row["pct_infeasible"] / 2),
+                f"{row['pct_infeasible']:.01f}%", color=COL_INF, fontsize=14, fontweight="bold")
+
+# legend
+axes[0].legend(loc="lower left", fontsize=16)
+
+# Increase the font size of x and y ticks
+for ax in axes:
+    ax.tick_params(axis='both', labelsize=14)
+
+plt.suptitle("OD Pair Classification under Flood Risk",
+             fontsize=24, fontweight="bold")
+
 plt.tight_layout()
 fig.savefig(os.path.join(FIGS_DIR, "combined_od_classification.png"),
             dpi=300, bbox_inches="tight")
-plt.close(); print("  combined_od_classification.png")
+
+plt.close()
+print("  combined_od_classification.png")
 
 print(f"\n  All figures saved to: {FIGS_DIR}")
 print("\n  BLOCK 4 COMPLETE")
