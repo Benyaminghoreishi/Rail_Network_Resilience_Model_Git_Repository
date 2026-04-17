@@ -1,4 +1,4 @@
-# 🚆 Rail Freight Resilience Modeling Framework
+# 🚆 The U.S. Freight Rail Resilience Modeling Framework
 
 ## 📌 Overview
 
