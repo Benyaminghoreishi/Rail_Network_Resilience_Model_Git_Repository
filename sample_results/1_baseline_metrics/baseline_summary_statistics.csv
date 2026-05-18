@@ -1,0 +1,15 @@
+Metric,Value_2024,Value_2050,Units
+Total Ton-hours,53362444.68511397,68527842.99103743,ton·hours
+Total Value-hours,26320.08424674292,52921.11216945488,USD·hours
+Total daily tons,4190174.7064110567,5211425.186730702,tons/day
+Total daily value,1594.8937647656035,2810.3644548090297,USD/day
+Average travel time (unweighted),23.62026907699701,23.62026907699701,hours
+Average travel time (weighted by tons),12.735135984537418,12.735135984537418,hours
+Average path length (unweighted),1157.3931847728534,1157.3931847728534,miles
+Average path length (weighted by tons),624.0216632423334,624.0216632423334,miles
+Number of feasible OD pairs,10074017.0,10074017.0,count
+Total OD pairs,10074017.0,10074017.0,count
+Feasible OD pairs,10074017.0,10074017.0,count
+Infeasible OD pairs,0.0,0.0,count
+Feasibility ratio (φ_0),1.0,1.0,ratio
+Feasibility percentage,100.0,100.0,percent
