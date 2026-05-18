@@ -1,4 +1,4 @@
-# 🚆 Rail Freight Resilience Modeling Framework
+# 🚆 The U.S. Freight Rail Resilience Modeling Framework
 
 ## 📌 Overview
 
@@ -194,7 +194,7 @@ Run stages sequentially:
 
 - 🚆 Freight network modeling  
 - 🛡️ Infrastructure resilience analysis  
-- 🌊 Climate risk assessment (flood impacts)  
+- 🌊 Extreme hazards risk assessment (flood impacts)  
 - 📍 Corridor and bottleneck identification  
 
 ---
